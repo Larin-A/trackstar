@@ -3,10 +3,51 @@
 class IssueController extends Controller
 {
 	/**
+	 * @var private property containing the associated Project model instance.
+	 */
+	private $_project = null;
+
+	/**
+	 * Protected method to load the associated Project model class
+	 * @param integer projectId the primary identifier of the associated Project
+	 * @return object the Project data model based on the primary key
+	 */
+	protected function loadProject($projectId)
+	{
+		//if the project property is null, create it based on input id
+		if ($this->_project === null) {
+			$this->_project = Project::model()->findByPk($projectId);
+			if ($this->_project === null) {
+				throw new CHttpException(404, 'The requested project does not exist.');
+			}
+		}
+
+		return $this->_project;
+	}
+	/**
+	 * In-class defined filter method, configured for use in the above filters()
+	 * method. It is called before the actionCreate() action method is run in
+	 * order to ensure a proper project context
+	 */
+	public function filterProjectContext($filterChain)
+	{
+		//set the project identifier based on GET input request variables
+		if (isset($_GET['pid']))
+			$this->loadProject($_GET['pid']);
+		else
+			throw new CHttpException(
+				403,
+				'Must specify a project before performing this action.'
+			);
+		//complete the running of other filters and execute the requested action
+		$filterChain->run();
+	}
+
+	/**
 	 * @var string the default layout for the views. Defaults to '//layouts/column2', meaning
 	 * using two-column layout. See 'protected/views/layouts/column2.php'.
 	 */
-	public $layout='//layouts/column2';
+	public $layout = '//layouts/column2';
 
 	/**
 	 * @return array action filters
@@ -16,6 +57,7 @@ class IssueController extends Controller
 		return array(
 			'accessControl', // perform access control for CRUD operations
 			'postOnly + delete', // we only allow deletion via POST request
+			'projectContext + create index admin', //check to ensure valid project context
 		);
 	}
 
@@ -27,20 +69,24 @@ class IssueController extends Controller
 	public function accessRules()
 	{
 		return array(
-			array('allow',  // allow all users to perform 'index' and 'view' actions
-				'actions'=>array('index','view'),
-				'users'=>array('*'),
+			array(
+				'allow',  // allow all users to perform 'index' and 'view' actions
+				'actions' => array('index', 'view'),
+				'users' => array('*'),
 			),
-			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('create','update'),
-				'users'=>array('@'),
+			array(
+				'allow', // allow authenticated user to perform 'create' and 'update' actions
+				'actions' => array('create', 'update'),
+				'users' => array('@'),
 			),
-			array('allow', // allow admin user to perform 'admin' and 'delete' actions
-				'actions'=>array('admin','delete'),
-				'users'=>array('admin'),
+			array(
+				'allow', // allow admin user to perform 'admin' and 'delete' actions
+				'actions' => array('admin', 'delete'),
+				'users' => array('admin'),
 			),
-			array('deny',  // deny all users
-				'users'=>array('*'),
+			array(
+				'deny',  // deny all users
+				'users' => array('*'),
 			),
 		);
 	}
@@ -51,9 +97,12 @@ class IssueController extends Controller
 	 */
 	public function actionView($id)
 	{
-		$this->render('view',array(
-			'model'=>$this->loadModel($id),
-		));
+		$this->render(
+			'view',
+			array(
+				'model' => $this->loadModel($id),
+			)
+		);
 	}
 
 	/**
@@ -62,21 +111,24 @@ class IssueController extends Controller
 	 */
 	public function actionCreate()
 	{
-		$model=new Issue;
+		$model = new Issue;
+		$model->project_id = $this->_project->id;
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
 
-		if(isset($_POST['Issue']))
-		{
-			$model->attributes=$_POST['Issue'];
-			if($model->save())
-				$this->redirect(array('view','id'=>$model->id));
+		if (isset($_POST['Issue'])) {
+			$model->attributes = $_POST['Issue'];
+			if ($model->save())
+				$this->redirect(array('view', 'id' => $model->id));
 		}
 
-		$this->render('create',array(
-			'model'=>$model,
-		));
+		$this->render(
+			'create',
+			array(
+				'model' => $model,
+			)
+		);
 	}
 
 	/**
@@ -86,21 +138,23 @@ class IssueController extends Controller
 	 */
 	public function actionUpdate($id)
 	{
-		$model=$this->loadModel($id);
+		$model = $this->loadModel($id);
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
 
-		if(isset($_POST['Issue']))
-		{
-			$model->attributes=$_POST['Issue'];
-			if($model->save())
-				$this->redirect(array('view','id'=>$model->id));
+		if (isset($_POST['Issue'])) {
+			$model->attributes = $_POST['Issue'];
+			if ($model->save())
+				$this->redirect(array('view', 'id' => $model->id));
 		}
 
-		$this->render('update',array(
-			'model'=>$model,
-		));
+		$this->render(
+			'update',
+			array(
+				'model' => $model,
+			)
+		);
 	}
 
 	/**
@@ -113,7 +167,7 @@ class IssueController extends Controller
 		$this->loadModel($id)->delete();
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!isset($_GET['ajax']))
+		if (!isset($_GET['ajax']))
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
 	}
 
@@ -122,10 +176,21 @@ class IssueController extends Controller
 	 */
 	public function actionIndex()
 	{
-		$dataProvider=new CActiveDataProvider('Issue');
-		$this->render('index',array(
-			'dataProvider'=>$dataProvider,
-		));
+		$dataProvider = new CActiveDataProvider(
+			'Issue',
+			array(
+				'criteria' => array(
+					'condition' => 'project_id=:projectId',
+					'params' => array(':projectId' => $this->_project->id),
+				),
+			)
+		);
+		$this->render(
+			'index',
+			array(
+				'dataProvider' => $dataProvider,
+			)
+		);
 	}
 
 	/**
@@ -133,14 +198,19 @@ class IssueController extends Controller
 	 */
 	public function actionAdmin()
 	{
-		$model=new Issue('search');
+		$model = new Issue('search');
 		$model->unsetAttributes();  // clear any default values
-		if(isset($_GET['Issue']))
-			$model->attributes=$_GET['Issue'];
+		if (isset($_GET['Issue']))
+			$model->attributes = $_GET['Issue'];
 
-		$this->render('admin',array(
-			'model'=>$model,
-		));
+		$model->project_id = $this->_project->id;
+		
+		$this->render(
+			'admin',
+			array(
+				'model' => $model,
+			)
+		);
 	}
 
 	/**
@@ -152,9 +222,9 @@ class IssueController extends Controller
 	 */
 	public function loadModel($id)
 	{
-		$model=Issue::model()->findByPk($id);
-		if($model===null)
-			throw new CHttpException(404,'The requested page does not exist.');
+		$model = Issue::model()->findByPk($id);
+		if ($model === null)
+			throw new CHttpException(404, 'The requested page does not exist.');
 		return $model;
 	}
 
@@ -164,8 +234,7 @@ class IssueController extends Controller
 	 */
 	protected function performAjaxValidation($model)
 	{
-		if(isset($_POST['ajax']) && $_POST['ajax']==='issue-form')
-		{
+		if (isset($_POST['ajax']) && $_POST['ajax'] === 'issue-form') {
 			echo CActiveForm::validate($model);
 			Yii::app()->end();
 		}
