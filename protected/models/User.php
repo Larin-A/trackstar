@@ -149,4 +149,14 @@ class User extends TrackStarActiveRecord
 	{
 		return md5($password);
 	}
+
+	/**
+	 * Checks if the given password is correct.
+	 * @param string the password to be validated
+	 * @return boolean whether the password is valid
+	 */
+	public function validatePassword($password)
+	{
+		return $this->hashPassword($password) === $this->password;
+	}
 }
