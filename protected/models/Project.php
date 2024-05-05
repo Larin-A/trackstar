@@ -12,7 +12,7 @@
  * @property string $update_time
  * @property integer $update_user_id
  */
-class Project extends CActiveRecord
+class Project extends TrackStarActiveRecord
 {
 	/**
 	 * @return array of valid users for this project, indexed by user IDs
@@ -40,9 +40,7 @@ class Project extends CActiveRecord
 		// will receive user inputs.
 		return array(
 			array('name, description', 'required'),
-			array('create_user_id, update_user_id', 'numerical', 'integerOnly' => true),
 			array('name', 'length', 'max' => 255),
-			array('create_time, update_time', 'safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
 			array('id, name, description, create_time, create_user_id, update_time, update_user_id', 'safe', 'on' => 'search'),

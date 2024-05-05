@@ -19,7 +19,7 @@
  * @property Issue[] $issues1
  * @property Project[] $tblProjects
  */
-class User extends CActiveRecord
+class User extends TrackStarActiveRecord
 {
 	/**
 	 * @return string the associated database table name
@@ -38,12 +38,12 @@ class User extends CActiveRecord
 		// will receive user inputs.
 		return array(
 			array('username, email, password', 'required'),
-			array('create_user_id, update_user_id', 'numerical', 'integerOnly'=>true),
-			array('username, email, password', 'length', 'max'=>255),
-			array('last_login_time, create_time, update_time', 'safe'),
+			array('username, email, password', 'length', 'max' => 255),
+			array('email, username', 'unique'),
+			array('email', 'email'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('id, username, email, password, last_login_time, create_time, create_user_id, update_time, update_user_id', 'safe', 'on'=>'search'),
+			array('id, username, email, password, last_login_time, create_time, create_user_id, update_time, update_user_id', 'safe', 'on' => 'search'),
 		);
 	}
 
@@ -95,21 +95,24 @@ class User extends CActiveRecord
 	{
 		// @todo Please modify the following code to remove attributes that should not be searched.
 
-		$criteria=new CDbCriteria;
+		$criteria = new CDbCriteria;
 
-		$criteria->compare('id',$this->id);
-		$criteria->compare('username',$this->username,true);
-		$criteria->compare('email',$this->email,true);
-		$criteria->compare('password',$this->password,true);
-		$criteria->compare('last_login_time',$this->last_login_time,true);
-		$criteria->compare('create_time',$this->create_time,true);
-		$criteria->compare('create_user_id',$this->create_user_id);
-		$criteria->compare('update_time',$this->update_time,true);
-		$criteria->compare('update_user_id',$this->update_user_id);
+		$criteria->compare('id', $this->id);
+		$criteria->compare('username', $this->username, true);
+		$criteria->compare('email', $this->email, true);
+		$criteria->compare('password', $this->password, true);
+		$criteria->compare('last_login_time', $this->last_login_time, true);
+		$criteria->compare('create_time', $this->create_time, true);
+		$criteria->compare('create_user_id', $this->create_user_id);
+		$criteria->compare('update_time', $this->update_time, true);
+		$criteria->compare('update_user_id', $this->update_user_id);
 
-		return new CActiveDataProvider($this, array(
-			'criteria'=>$criteria,
-		));
+		return new CActiveDataProvider(
+			$this,
+			array(
+				'criteria' => $criteria,
+			)
+		);
 	}
 
 	/**
@@ -118,7 +121,7 @@ class User extends CActiveRecord
 	 * @param string $className active record class name.
 	 * @return User the static model class
 	 */
-	public static function model($className=__CLASS__)
+	public static function model($className = __CLASS__)
 	{
 		return parent::model($className);
 	}
