@@ -40,15 +40,15 @@ return array(
 
 		// uncomment the following to enable URLs in path-format
 		/*
-						  'urlManager'=>array(
-							  'urlFormat'=>'path',
-							  'rules'=>array(
-								  '<controller:\w+>/<id:\d+>'=>'<controller>/view',
-								  '<controller:\w+>/<action:\w+>/<id:\d+>'=>'<controller>/<action>',
-								  '<controller:\w+>/<action:\w+>'=>'<controller>/<action>',
-							  ),
-						  ),
-						  */
+								'urlManager'=>array(
+									'urlFormat'=>'path',
+									'rules'=>array(
+										'<controller:\w+>/<id:\d+>'=>'<controller>/view',
+										'<controller:\w+>/<action:\w+>/<id:\d+>'=>'<controller>/<action>',
+										'<controller:\w+>/<action:\w+>'=>'<controller>/<action>',
+									),
+								),
+								*/
 
 		// database settings are configured in database.php
 		'db' => require (dirname(__FILE__) . '/database.php'),
@@ -67,16 +67,19 @@ return array(
 				),
 				// uncomment the following to show log messages on web pages
 				/*
-										array(
-											'class'=>'CWebLogRoute',
-										),
-										*/
+													array(
+														'class'=>'CWebLogRoute',
+													),
+													*/
 			),
 		),
 
 		'authManager' => array(
 			'class' => 'CDbAuthManager',
 			'connectionID' => 'db',
+			'itemTable' => 'tbl_auth_item',
+			'assignmentTable' => 'tbl_auth_assignment',
+			'itemChildTable' => 'tbl_auth_item_child',
 		),
 	),
 

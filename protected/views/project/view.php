@@ -28,6 +28,13 @@ $this->menu = array(
 		)
 	),
 );
+
+if (Yii::app()->user->checkAccess('createUser', array('project' => $model))) {
+	$this->menu[] = array(
+		'label' => 'Add User To Project',
+		'url' => array('adduser', 'id' => $model->id)
+	);
+}
 ?>
 
 <h1>View Project #<?php echo $model->id; ?></h1>
@@ -50,8 +57,10 @@ $this->menu = array(
 
 <br />
 <h1>Project Issues</h1>
-<?php $this->widget('zii.widgets.CListView', array(
-	'dataProvider' => $issueDataProvider,
-	'itemView' => '/issue/_view',
-)
+<?php $this->widget(
+	'zii.widgets.CListView',
+	array(
+		'dataProvider' => $issueDataProvider,
+		'itemView' => '/issue/_view',
+	)
 ); ?>

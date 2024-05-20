@@ -23,6 +23,24 @@ class Project extends TrackStarActiveRecord
 		return $usersArray;
 	}
 
+	public static function getUserRoleOptions()
+	{
+		return CHtml::listData(
+			Yii::app()->authManager->getRoles(),
+			'name',
+			'name'
+		);
+	}
+
+	public function isUserInProject($user)
+	{
+		$sql = "SELECT user_id FROM tbl_project_user_assignment WHERE project_id=:projectId AND user_id=:userId";
+		$command = Yii::app()->db->createCommand($sql);
+		$command->bindValue(":projectId", $this->id, PDO::PARAM_INT);
+		$command->bindValue(":userId", $user->id, PDO::PARAM_INT);
+		return $command->execute() == 1;
+	}
+
 	/**
 	 * @return string the associated database table name
 	 */
@@ -121,5 +139,38 @@ class Project extends TrackStarActiveRecord
 	public static function model($className = __CLASS__)
 	{
 		return parent::model($className);
+	}
+
+	public function assignUser($userId, $role)
+	{
+		$command = Yii::app()->db->createCommand();
+		$command->insert(
+			'tbl_project_user_assignment',
+			array(
+				'role' => $role,
+				'user_id' => $userId,
+				'project_id' => $this->id,
+			)
+		);
+	}
+
+	public function removeUser($userId)
+	{
+		$command = Yii::app()->db->createCommand();
+		$command->delete(
+			'tbl_project_user_assignment',
+			'user_id=:userId AND project_id=:projectId',
+			array(':userId' => $userId, ':projectId' => $this->id)
+		);
+	}
+
+	public function allowCurrentUser($role)
+	{
+		$sql = "SELECT * FROM tbl_project_user_assignment WHERE project_id=:projectId AND user_id=:userId AND role=:role";
+		$command = Yii::app()->db->createCommand($sql);
+		$command->bindValue(":projectId", $this->id, PDO::PARAM_INT);
+		$command->bindValue(":userId", Yii::app()->user->getId(), PDO::PARAM_INT);
+		$command->bindValue(":role", $role, PDO::PARAM_STR);
+		return $command->execute() == 1;
 	}
 }
