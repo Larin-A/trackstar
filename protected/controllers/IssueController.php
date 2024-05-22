@@ -67,13 +67,13 @@ class IssueController extends Controller
 	 */
 	public function actionView($id)
 	{
-		$model = $this->loadModel($id);
-		$this->verificationPermission($model->project->id, 'readIssue');
-
+		$issue = $this->loadModel($id);
+		$comment = $this->createComment($issue);
 		$this->render(
 			'view',
 			array(
-				'model' => $model,
+				'model' => $issue,
+				'comment' => $comment,
 			)
 		);
 	}
@@ -190,6 +190,25 @@ class IssueController extends Controller
 				'model' => $model,
 			)
 		);
+	}
+
+	/**
+	 * Creates a new comment on an issue
+	 */
+	protected function createComment($issue)
+	{
+		$comment = new Comment;
+		if (isset($_POST['Comment'])) {
+			$comment->attributes = $_POST['Comment'];
+			if ($issue->addComment($comment)) {
+				Yii::app()->user->setFlash(
+					'commentSubmitted',
+					"Your comment has been added."
+				);
+				$this->refresh();
+			}
+		}
+		return $comment;
 	}
 
 	/**
