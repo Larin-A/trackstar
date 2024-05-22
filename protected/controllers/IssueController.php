@@ -67,10 +67,13 @@ class IssueController extends Controller
 	 */
 	public function actionView($id)
 	{
+		$model = $this->loadModel($id);
+		$this->verificationPermission($model->project->id, 'readIssue');
+
 		$this->render(
 			'view',
 			array(
-				'model' => $this->loadModel($id),
+				'model' => $model,
 			)
 		);
 	}
@@ -111,6 +114,7 @@ class IssueController extends Controller
 	public function actionUpdate($id)
 	{
 		$model = $this->loadModel($id);
+		$this->verificationPermission($model->project->id, 'updateIssue');
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
@@ -136,7 +140,10 @@ class IssueController extends Controller
 	 */
 	public function actionDelete($id)
 	{
-		$this->loadModel($id)->delete();
+		$model = $this->loadModel($id);
+		$this->verificationPermission($model->project->id, 'deleteIssue');
+
+		$model->delete();
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
 		if (!isset($_GET['ajax']))
