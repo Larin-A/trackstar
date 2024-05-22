@@ -81,6 +81,8 @@ class IssueController extends Controller
 	 */
 	public function actionCreate()
 	{
+		$this->verificationPermission($this->_project->id, 'createIssue');
+
 		$model = new Issue;
 		$model->project_id = $this->_project->id;
 

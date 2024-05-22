@@ -15,13 +15,6 @@ $this->menu = array(
 			'pid' => $model->project->id
 		)
 	),
-	array(
-		'label' => 'Create Issue',
-		'url' => array(
-			'create',
-			'pid' => $model->project->id
-		)
-	),
 	array('label' => 'Update Issue', 'url' => array('update', 'id' => $model->id)),
 	array(
 		'label' => 'Delete Issue',
@@ -39,6 +32,17 @@ $this->menu = array(
 		)
 	),
 );
+
+if (Yii::app()->user->checkAccess('deleteProject', array('project' => $model))) {
+	$this->menu[] = array(
+		'label' => 'Delete Project',
+		'url' => '#',
+		'linkOptions' => array(
+			'submit' => array('delete', 'id' => $model->id),
+			'confirm' => 'Are you sure you want to delete this item?'
+		)
+	);
+}
 ?>
 
 <h1>View Issue #<?php echo $model->id; ?></h1>

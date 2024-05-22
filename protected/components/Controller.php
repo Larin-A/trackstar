@@ -54,4 +54,23 @@ class Controller extends CController
 			),
 		);
 	}
+
+	protected function verificationPermission($id, $permission)
+	{
+		$project = Project::model()->findByPk($id);
+		if ($project === null)
+			throw new CHttpException(404, 'The requested page does not exist.');
+
+		if (
+			!Yii::app()->user->checkAccess(
+				$permission,
+				array('project' => $project)
+			)
+		) {
+			throw new CHttpException(
+				403,
+				'You are not authorized to perform this action.'
+			);
+		}
+	}
 }

@@ -25,6 +25,8 @@ class ProjectController extends Controller
 	 */
 	public function actionView($id)
 	{
+		$this->verificationPermission($id, 'readProject');
+
 		$issueDataProvider = new CActiveDataProvider(
 			'Issue',
 			array(
@@ -80,6 +82,8 @@ class ProjectController extends Controller
 	 */
 	public function actionUpdate($id)
 	{
+		$this->verificationPermission($id, 'updateProject');
+
 		$model = $this->loadModel($id);
 
 		// Uncomment the following line if AJAX validation is needed
@@ -106,6 +110,8 @@ class ProjectController extends Controller
 	 */
 	public function actionDelete($id)
 	{
+		$this->verificationPermission($id, 'deleteProject');
+
 		$this->loadModel($id)->delete();
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
@@ -151,18 +157,9 @@ class ProjectController extends Controller
 	 */
 	public function actionAdduser($id)
 	{
+		$this->verificationPermission($id, 'createUser');
+
 		$project = $this->loadModel($id);
-		if (
-			!Yii::app()->user->checkAccess(
-				'createUser',
-				array('project' => $project)
-			)
-		) {
-			throw new CHttpException(
-				403,
-				'You are not authorized to perform this action.'
-			);
-		}
 		$form = new ProjectUserForm;
 		// collect user input data
 		if (isset($_POST['ProjectUserForm'])) {
