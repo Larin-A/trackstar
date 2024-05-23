@@ -1,12 +1,17 @@
 <?php
 
+Yii::import('application.vendors.*');
+require_once ('Zend/Feed.php');
+require_once ('Zend/Feed/Rss.php');
+
+
 class CommentController extends Controller
 {
 	/**
 	 * @var string the default layout for the views. Defaults to '//layouts/column2', meaning
 	 * using two-column layout. See 'protected/views/layouts/column2.php'.
 	 */
-	public $layout='//layouts/column2';
+	public $layout = '//layouts/column2';
 
 	/**
 	 * @return array action filters
@@ -27,20 +32,24 @@ class CommentController extends Controller
 	public function accessRules()
 	{
 		return array(
-			array('allow',  // allow all users to perform 'index' and 'view' actions
-				'actions'=>array('index','view'),
-				'users'=>array('*'),
+			array(
+				'allow',  // allow all users to perform 'index' and 'view' actions
+				'actions' => array('index', 'view', 'feed'),
+				'users' => array('*'),
 			),
-			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('create','update'),
-				'users'=>array('@'),
+			array(
+				'allow', // allow authenticated user to perform 'create' and 'update' actions
+				'actions' => array('create', 'update'),
+				'users' => array('@'),
 			),
-			array('allow', // allow admin user to perform 'admin' and 'delete' actions
-				'actions'=>array('admin','delete'),
-				'users'=>array('admin'),
+			array(
+				'allow', // allow admin user to perform 'admin' and 'delete' actions
+				'actions' => array('admin', 'delete'),
+				'users' => array('admin'),
 			),
-			array('deny',  // deny all users
-				'users'=>array('*'),
+			array(
+				'deny',  // deny all users
+				'users' => array('*'),
 			),
 		);
 	}
@@ -51,9 +60,12 @@ class CommentController extends Controller
 	 */
 	public function actionView($id)
 	{
-		$this->render('view',array(
-			'model'=>$this->loadModel($id),
-		));
+		$this->render(
+			'view',
+			array(
+				'model' => $this->loadModel($id),
+			)
+		);
 	}
 
 	/**
@@ -62,21 +74,23 @@ class CommentController extends Controller
 	 */
 	public function actionCreate()
 	{
-		$model=new Comment;
+		$model = new Comment;
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
 
-		if(isset($_POST['Comment']))
-		{
-			$model->attributes=$_POST['Comment'];
-			if($model->save())
-				$this->redirect(array('view','id'=>$model->id));
+		if (isset($_POST['Comment'])) {
+			$model->attributes = $_POST['Comment'];
+			if ($model->save())
+				$this->redirect(array('view', 'id' => $model->id));
 		}
 
-		$this->render('create',array(
-			'model'=>$model,
-		));
+		$this->render(
+			'create',
+			array(
+				'model' => $model,
+			)
+		);
 	}
 
 	/**
@@ -86,21 +100,23 @@ class CommentController extends Controller
 	 */
 	public function actionUpdate($id)
 	{
-		$model=$this->loadModel($id);
+		$model = $this->loadModel($id);
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
 
-		if(isset($_POST['Comment']))
-		{
-			$model->attributes=$_POST['Comment'];
-			if($model->save())
-				$this->redirect(array('view','id'=>$model->id));
+		if (isset($_POST['Comment'])) {
+			$model->attributes = $_POST['Comment'];
+			if ($model->save())
+				$this->redirect(array('view', 'id' => $model->id));
 		}
 
-		$this->render('update',array(
-			'model'=>$model,
-		));
+		$this->render(
+			'update',
+			array(
+				'model' => $model,
+			)
+		);
 	}
 
 	/**
@@ -113,7 +129,7 @@ class CommentController extends Controller
 		$this->loadModel($id)->delete();
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!isset($_GET['ajax']))
+		if (!isset($_GET['ajax']))
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
 	}
 
@@ -122,10 +138,13 @@ class CommentController extends Controller
 	 */
 	public function actionIndex()
 	{
-		$dataProvider=new CActiveDataProvider('Comment');
-		$this->render('index',array(
-			'dataProvider'=>$dataProvider,
-		));
+		$dataProvider = new CActiveDataProvider('Comment');
+		$this->render(
+			'index',
+			array(
+				'dataProvider' => $dataProvider,
+			)
+		);
 	}
 
 	/**
@@ -133,14 +152,63 @@ class CommentController extends Controller
 	 */
 	public function actionAdmin()
 	{
-		$model=new Comment('search');
+		$model = new Comment('search');
 		$model->unsetAttributes();  // clear any default values
-		if(isset($_GET['Comment']))
-			$model->attributes=$_GET['Comment'];
+		if (isset($_GET['Comment']))
+			$model->attributes = $_GET['Comment'];
 
-		$this->render('admin',array(
-			'model'=>$model,
-		));
+		$this->render(
+			'admin',
+			array(
+				'model' => $model,
+			)
+		);
+	}
+
+	/**
+	 * Uses Zend Feed to return an RSS formatted comments data feed
+	 */
+	public function actionFeed()
+	{
+		if (isset($_GET['pid'])) {
+			$comments = Comment::model()->with(
+				array(
+					'issue' => array(
+						'condition' => 'project_id=:projectId',
+						'params' => array(':projectId' => intval($_GET['pid'])),
+					)
+				)
+			)->recent(20)->findAll();
+		} else
+			$comments = Comment::model()->recent(20)->findAll();
+		//convert from an array of comment AR class instances to an name=>value array for Zend
+		$entries = array();
+		foreach ($comments as $comment) {
+			$entries[] = array(
+				'title' => $comment->issue->name,
+				'link' => CHtml::encode(
+					$this->createAbsoluteUrl(
+						'issue/view',
+						array('id' => $comment->issue->id)
+					)
+				),
+				'description' => $comment->author->username . 'says:<br>' . $comment->content,
+				'lastUpdate' => strtotime($comment->create_time),
+				'author' => CHtml::encode($comment->author->username),
+			);
+		}
+		//now use the Zend Feed class to generate the Feed
+		// generate and render RSS feed
+		$feed = Zend_Feed::importArray(
+			array(
+				'title' => 'Trackstar Project Comments Feed',
+				'link' => $this->createAbsoluteUrl(''),
+				'charset' => 'UTF-8',
+				'entries' => $entries,
+			),
+			'rss'
+		);
+		$feed->send();
 	}
 
 	/**
@@ -152,9 +220,9 @@ class CommentController extends Controller
 	 */
 	public function loadModel($id)
 	{
-		$model=Comment::model()->findByPk($id);
-		if($model===null)
-			throw new CHttpException(404,'The requested page does not exist.');
+		$model = Comment::model()->findByPk($id);
+		if ($model === null)
+			throw new CHttpException(404, 'The requested page does not exist.');
 		return $model;
 	}
 
@@ -164,8 +232,7 @@ class CommentController extends Controller
 	 */
 	protected function performAjaxValidation($model)
 	{
-		if(isset($_POST['ajax']) && $_POST['ajax']==='comment-form')
-		{
+		if (isset($_POST['ajax']) && $_POST['ajax'] === 'comment-form') {
 			echo CActiveForm::validate($model);
 			Yii::app()->end();
 		}
