@@ -11,6 +11,9 @@
  * @property integer $create_user_id
  * @property string $update_time
  * @property integer $update_user_id
+ * 
+ * @property User $creater
+ * @property User $updater
  */
 class Project extends TrackStarActiveRecord
 {
@@ -71,6 +74,8 @@ class Project extends TrackStarActiveRecord
 	public function relations()
 	{
 		return array(
+			'creater' => array(self::BELONGS_TO, 'User', 'create_user_id'),
+			'updater' => array(self::BELONGS_TO, 'User', 'update_user_id'),
 			'issues' => array(self::HAS_MANY, 'Issue', 'project_id'),
 			'users' => array(
 				self::MANY_MANY,

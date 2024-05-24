@@ -6,7 +6,7 @@
 <div class="view">
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('id')); ?>:</b>
-	<?php echo CHtml::link(CHtml::encode($data->id), array('view', 'id'=>$data->id)); ?>
+	<?php echo CHtml::link(CHtml::encode($data->id), array('view', 'id' => $data->id)); ?>
 	<br />
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('name')); ?>:</b>
@@ -22,7 +22,7 @@
 	<br />
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('create_user_id')); ?>:</b>
-	<?php echo CHtml::encode($data->create_user_id); ?>
+	<?php echo CHtml::encode($data->creater->username); ?>
 	<br />
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('update_time')); ?>:</b>
@@ -30,7 +30,7 @@
 	<br />
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('update_user_id')); ?>:</b>
-	<?php echo CHtml::encode($data->update_user_id); ?>
+	<?php echo CHtml::encode($data->updater->username); ?>
 	<br />
 
 
