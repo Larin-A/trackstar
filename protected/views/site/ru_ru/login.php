@@ -49,5 +49,7 @@ $this->breadcrumbs = array(
         <?php echo CHtml::submitButton('Вход'); ?>
     </div>
 
+    <a href="/register">Регистрация</a>
+
     <?php $this->endWidget(); ?>
 </div><!-- form -->

@@ -37,8 +37,20 @@ class Controller extends CController
 			),
 			array(
 				'allow', // allow authenticated user to perform 'create' and'update' actions
-				'controllers' => array('issue', 'project', 'user'),
+				'controllers' => array('issue', 'project'),
 				'actions' => array('create', 'update'),
+				'users' => array('@'),
+			),
+			array(
+				'allow', // allow authenticated user to perform 'create' and'update' actions
+				'controllers' => array('user'),
+				'actions' => array('create'),
+				'users' => array('*'),
+			),
+			array(
+				'allow', // allow authenticated user to perform 'create' and'update' actions
+				'controllers' => array('user'),
+				'actions' => array('update'),
 				'users' => array('@'),
 			),
 			array(
