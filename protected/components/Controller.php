@@ -45,7 +45,7 @@ class Controller extends CController
 				'allow', // allow admin user to perform 'admin' and 'delete' actions
 				'controllers' => array('issue', 'project', 'user'),
 				'actions' => array('admin', 'delete'),
-				'users' => array('admin'),
+				'users' => array('@'),
 			),
 			array(
 				'deny', // deny all users

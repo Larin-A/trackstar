@@ -152,6 +152,13 @@ class Project extends TrackStarActiveRecord
 				'project_id' => $this->id,
 			)
 		);
+
+		//add the association, along with the RBAC biz rule, to our RBAC hierarchy
+		$auth = Yii::app()->authManager;
+		if (!$auth->isAssigned($role, $userId)) {
+			$bizRule = 'return isset($params["project"]) && $params["project"]->allowCurrentUser("' . $role . '");';
+			$auth->assign($role, $userId, $bizRule);
+		}
 	}
 
 	public function removeUser($userId)
