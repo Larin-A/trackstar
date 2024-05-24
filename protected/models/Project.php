@@ -28,11 +28,17 @@ class Project extends TrackStarActiveRecord
 
 	public static function getUserRoleOptions()
 	{
-		return CHtml::listData(
+		$list = CHtml::listData(
 			Yii::app()->authManager->getRoles(),
 			'name',
 			'name'
 		);
+
+		if (!Yii::app()->user->checkAccess("admin")) {
+			unset($list['admin']);
+		}
+
+		return $list;
 	}
 
 	public function isUserInProject($user)
@@ -148,6 +154,13 @@ class Project extends TrackStarActiveRecord
 
 	public function assignUser($userId, $role)
 	{
+		if ($role == 'admin' && !Yii::app()->user->checkAccess("admin")) {
+			throw new CHttpException(
+				403,
+				'You are not authorized to perform this action.'
+			);
+		}
+
 		$command = Yii::app()->db->createCommand();
 		$command->insert(
 			'tbl_project_user_assignment',
