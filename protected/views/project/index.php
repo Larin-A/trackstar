@@ -33,11 +33,27 @@ endif; ?>
 	)
 ); ?>
 
-<?php $this->beginWidget(
-	'zii.widgets.CPortlet',
-	array(
-		'title' => 'Recent Comments',
+<?php
+$key = "TrackStar.ProjectListing.RecentComments";
+if (
+	$this->beginCache(
+		$key,
+		array(
+			'dependency' => array(
+				'class' => 'system.caching.dependencies.CDbCacheDependency',
+				'sql' => 'SELECT MAX(update_time) FROM tbl_comment'
+			)
+		)
 	)
-);
-$this->widget('RecentCommentsWidget');
-$this->endWidget(); ?>
+) {
+	$this->beginWidget(
+		'zii.widgets.CPortlet',
+		array(
+			'title' => 'Recent Comments',
+		)
+	);
+	$this->widget('RecentCommentsWidget');
+	$this->endWidget();
+	$this->endCache();
+}
+?>

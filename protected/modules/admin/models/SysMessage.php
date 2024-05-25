@@ -93,9 +93,11 @@ class SysMessage extends TrackstarActiveRecord
 		$criteria->compare('update_time', $this->update_time, true);
 		$criteria->compare('update_user_id', $this->update_user_id);
 
-		return new CActiveDataProvider($this, array(
-			'criteria' => $criteria,
-		)
+		return new CActiveDataProvider(
+			$this,
+			array(
+				'criteria' => $criteria,
+			)
 		);
 	}
 
@@ -108,5 +110,22 @@ class SysMessage extends TrackstarActiveRecord
 	public static function model($className = __CLASS__)
 	{
 		return parent::model($className);
+	}
+
+	/**
+	 * Retrieves the most recent system message.
+	 * @return SysMessage the AR instance representing the latest system message.
+	 */
+
+	public static function getLatest()
+	{
+		//use the query caching approach
+		$dependency = new CDbCacheDependency('SELECT MAX(update_time) FROM tbl_sys_message');
+		$sysMessage = SysMessage::model()->cache(1800, $dependency)->find(
+			array(
+				'order' => 't.update_time DESC',
+			)
+		);
+		return $sysMessage;
 	}
 }

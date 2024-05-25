@@ -80,6 +80,11 @@ class SiteController extends Controller
 			$this->redirect(Yii::app()->homeUrl);
 		}
 
+		Yii::trace(
+			"The actionLogin() method is being requested",
+			"application.controllers.SiteController"
+		);
+
 		$model = new LoginForm;
 
 		// if it is ajax validation request
@@ -92,8 +97,20 @@ class SiteController extends Controller
 		if (isset($_POST['LoginForm'])) {
 			$model->attributes = $_POST['LoginForm'];
 			// validate user input and redirect to the previous page if valid
-			if ($model->validate() && $model->login())
+			if ($model->validate() && $model->login()) {
+				Yii::log(
+					"Successful login of user: " . Yii::app()->user->id,
+					"info",
+					"application.controllers.SiteController"
+				);
 				$this->redirect(Yii::app()->user->returnUrl);
+			} else {
+				Yii::log(
+					"Failed login attempt",
+					"warning",
+					"application.controllers.SiteController"
+				);
+			}
 		}
 		// display the login form
 		$this->render('login', array('model' => $model));
@@ -106,5 +123,18 @@ class SiteController extends Controller
 	{
 		Yii::app()->user->logout();
 		$this->redirect(Yii::app()->homeUrl);
+	}
+
+	public function actionShowLog()
+	{
+		if (!Yii::app()->user->checkAccess("admin")) {
+			throw new CHttpException(
+				403,
+				'You are not authorized to perform this action.'
+			);
+		}
+
+		echo "Logged Messages:<br><br>";
+		CVarDumper::dump(Yii::getLogger()->getLogs());
 	}
 }
